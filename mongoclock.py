@@ -1,9 +1,14 @@
-def awesome(e):
-    return e.replace('X', ' ').replace('[', '\033[07m ').replace(']', '\033[00m ')
+#!/usr/bin/env python
+import os
+import time
+import sys
+from subprocess import Popen, PIPE
+
+def awesome(list):
+    return [elem.replace('X', ' ').replace('[', '\033[07m ').replace(']', '\033[00m ') for elem in list]
 
 
-MONGO_0 = [awesome(e) for e in
-          ['    [XXXX]      ',
+MONGO_0 = ['    [XXXX]      ',
            '  [XX]  [XX]    ',
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
@@ -14,10 +19,9 @@ MONGO_0 = [awesome(e) for e in
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
            '  [XX]  [XX]    ',
-           '    [XXXX]      ']]
+           '    [XXXX]      ']
 
-MONGO_1 = [awesome(e) for e in
-          ['      [XX]      ',
+MONGO_1 = ['      [XX]      ',
            '    [XXXX]      ',
            '  [XXXXXX]      ',
            '      [XX]      ',
@@ -28,10 +32,9 @@ MONGO_1 = [awesome(e) for e in
            '      [XX]      ',
            '      [XX]      ',
            '      [XX]      ',
-           '  [XXXXXXXXXX]  ']]
+           '  [XXXXXXXXXX]  ']
 
-MONGO_2 = [awesome(e) for e in
-          ['  [XXXXXXXX]    ',
+MONGO_2 = ['  [XXXXXXXX]    ',
            '[XX]      [XX]  ',
            '          [XX]  ',
            '          [XX]  ',
@@ -42,10 +45,9 @@ MONGO_2 = [awesome(e) for e in
            '  [XX]          ',
            '[XX]            ',
            '[XX]      [XX]  ',
-           '[XXXXXXXXXXXX]  ']]
+           '[XXXXXXXXXXXX]  ']
 
-MONGO_3 = [awesome(e) for e in
-          ['  [XXXXXXXX]    ',
+MONGO_3 = ['  [XXXXXXXX]    ',
            '[XX]      [XX]  ',
            '          [XX]  ',
            '          [XX]  ',
@@ -56,10 +58,9 @@ MONGO_3 = [awesome(e) for e in
            '          [XX]  ',
            '          [XX]  ',
            '[XX]      [XX]  ',
-           '  [XXXXXXXX]    ']]
+           '  [XXXXXXXX]    ']
 
-MONGO_4 = [awesome(e) for e in
-          ['        [XX]    ',
+MONGO_4 = ['        [XX]    ',
            '      [XXXX]    ',
            '    [XXXXXX]    ',
            '  [XX]  [XX]    ',
@@ -70,10 +71,9 @@ MONGO_4 = [awesome(e) for e in
            '        [XX]    ',
            '        [XX]    ',
            '        [XX]    ',
-           '      [XXXXXX]  ']]
+           '      [XXXXXX]  ']
 
-MONGO_5 = [awesome(e) for e in
-          ['[XXXXXXXXXXXX]  ',
+MONGO_5 = ['[XXXXXXXXXXXX]  ',
            '[XX]            ',
            '[XX]            ',
            '[XX]            ',
@@ -84,10 +84,9 @@ MONGO_5 = [awesome(e) for e in
            '          [XX]  ',
            '          [XX]  ',
            '[XX]      [XX]  ',
-           '  [XXXXXXXX]    ']]
+           '  [XXXXXXXX]    ']
 
-MONGO_6 = [awesome(e) for e in
-          ['      [XXXX]    ',
+MONGO_6 = ['      [XXXX]    ',
            '    [XX]        ',
            '  [XX]          ',
            '[XX]            ',
@@ -98,10 +97,9 @@ MONGO_6 = [awesome(e) for e in
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
-           '  [XXXXXXXX]    ']]
+           '  [XXXXXXXX]    ']
 
-MONGO_7 = [awesome(e) for e in
-          ['[XXXXXXXXXXXX]  ',
+MONGO_7 = ['[XXXXXXXXXXXX]  ',
            '[XX]      [XX]  ',
            '          [XX]  ',
            '          [XX]  ',
@@ -112,10 +110,9 @@ MONGO_7 = [awesome(e) for e in
            '    [XX]        ',
            '    [XX]        ',
            '    [XX]        ',
-           '    [XX]        ']]
+           '    [XX]        ']
 
-MONGO_8 = [awesome(e) for e in
-          ['  [XXXXXXXX]    ',
+MONGO_8 = ['  [XXXXXXXX]    ',
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
@@ -126,10 +123,9 @@ MONGO_8 = [awesome(e) for e in
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
-           '  [XXXXXXXX]    ']]
+           '  [XXXXXXXX]    ']
 
-MONGO_9 = [awesome(e) for e in
-          ['  [XXXXXXXX]    ',
+MONGO_9 = ['  [XXXXXXXX]    ',
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
            '[XX]      [XX]  ',
@@ -140,10 +136,9 @@ MONGO_9 = [awesome(e) for e in
            '          [XX]  ',
            '        [XX]    ',
            '      [XX]      ',
-           '  [XXXX]        ']]
+           '  [XXXX]        ']
 
-MONGO__ = [awesome(e) for e in
-          ['                ',
+MONGO__ = ['                ',
            '                ',
            '      [XX]      ',
            '      [XX]      ',
@@ -154,54 +149,100 @@ MONGO__ = [awesome(e) for e in
            '      [XX]      ',
            '      [XX]      ',
            '                ',
-           '                ']]
+           '                ']
 
 
 DX = len(MONGO_0[0])
+DC = len(MONGO__[0])
 
 
-class mongoclock:
-    def __init__(self):
-        pass
-    
-    
-    def print_digit(digit, x, y):
-        d = MONGO__
-        if   digit == 0:  d = MONGO_0
-        elif digit == 1:  d = MONGO_1
-        elif digit == 2:  d = MONGO_2
-        elif digit == 3:  d = MONGO_3
-        elif digit == 4:  d = MONGO_4
-        elif digit == 5:  d = MONGO_5
-        elif digit == 6:  d = MONGO_6
-        elif digit == 7:  d = MONGO_7
-        elif digit == 8:  d = MONGO_8
-        elif digit == 9:  d = MONGO_9
-        x += 1
-        for i in range(len(d)):
-            y += 1
-            print("\033[%i;%iH%s", y, x, d[i])
-    
-    def print_number(number, x, y):
-        print_digit(number // 10, x, y)
-        print_digit(number % 10, x + DX, y)
-    
-    def print_time(h, m, s, x, y):
-        print_number(h, x, y)
+MONGO_0 = awesome(MONGO_0)
+MONGO_1 = awesome(MONGO_1)
+MONGO_2 = awesome(MONGO_2)
+MONGO_3 = awesome(MONGO_3)
+MONGO_4 = awesome(MONGO_4)
+MONGO_5 = awesome(MONGO_5)
+MONGO_6 = awesome(MONGO_6)
+MONGO_7 = awesome(MONGO_7)
+MONGO_8 = awesome(MONGO_8)
+MONGO_9 = awesome(MONGO_9)
+MONGO__ = awesome(MONGO__)
+
+
+def print_digit(digit, x, y):
+    d = MONGO__
+    if   digit == 0:  d = MONGO_0
+    elif digit == 1:  d = MONGO_1
+    elif digit == 2:  d = MONGO_2
+    elif digit == 3:  d = MONGO_3
+    elif digit == 4:  d = MONGO_4
+    elif digit == 5:  d = MONGO_5
+    elif digit == 6:  d = MONGO_6
+    elif digit == 7:  d = MONGO_7
+    elif digit == 8:  d = MONGO_8
+    elif digit == 9:  d = MONGO_9
+    x += 1
+    for i in range(len(d)):
+        y += 1
+        print("\033[%i;%iH%s" % (y, x, d[i]))
+
+def print_number(number, x, y):
+    print_digit(number // 10, x, y)
+    print_digit(number % 10, x + DX, y)
+
+def print_time(h, m, s, x, y):
+    print_number(h, x, y)
+    x += DX << 1
+    print_digit(-1, x, y)
+    x += DC
+    print_number(m, x, y)
+    if s is not None:
         x += DX << 1
         print_digit(-1, x, y)
-        x += DX
-        print_number(m, x, y)
-        if s is not None:
-            x += DX << 1
-            print_digit(-1, x, y)
-            x += DX
-            print_number(s, x, y)
-    
-    def get_print_width(has_seconds):
-        return 5 * DX + (3 * DX if has_seconds else 0)
+        x += DC
+        print_number(s, x, y)
+
+def get_print_width(has_seconds):
+    return DC + 4 * DX + ((DC + 2 * DX) if has_seconds else 0)
+
+def get_print_height():
+    return len(MONGO_0)
+
+def get_print_offset(has_seconds):
+    (h, w) = get_dimensions()
+    return ((w - get_print_width(has_seconds)) // 2, (h - get_print_height()) // 2)
+
+def fits(has_seconds):
+    (h, w) = get_dimensions()
+    return (get_print_width(has_seconds) <= w) and (get_print_height() <= h)
+
+def get_dimensions():
+    rc = Popen(['stty', 'size'], stdout = PIPE).communicate()[0]
+    rc = rc.decode('utf-8')
+    rc = rc.replace('\n', '').split(' ')
+    return [int(x) for x in rc]
 
 
 if __name__ == '__main__':
-    mongoclock()
+    val = None
+    if fits(True):
+        val = True
+    elif fits(False):
+        val = False
+    else:
+        print('Screen is too small')
+        exit(1)
+    (x, y) = get_print_offset(val)
+    last = (-1, -1, -1)
+    while True:
+        (h, m, s) = [int(x) for x in time.strftime('%H %M %S', time.localtime()).split(' ')]
+        if not val:
+            s = None
+        if h != last[0] or m != last[1] or s != last[2]:
+            print('\033[H\033[2J', end='')
+            print_time(h, m, s, x, y)
+            print('\033[1;1H', end='')
+            sys.stdout.flush()
+            last = (h, m, s)
+        time.sleep(0.1)
 

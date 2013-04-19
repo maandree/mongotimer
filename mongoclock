@@ -1,0 +1,4 @@
+#!/bin/sh
+echo -en '\033[?25l'
+"$0.py" 2>/dev/null
+echo -en '\033[?25h'
