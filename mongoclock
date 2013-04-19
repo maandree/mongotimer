@@ -1,4 +1,4 @@
 #!/bin/sh
-echo -en '\033[?25l'
+echo -en '\033[?1049h\033[?25l'
 "$0.py" 2>/dev/null
-echo -en '\033[?25h'
+echo -en '\033[?25h\033[H\033[2J\033[?1049l'
