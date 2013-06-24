@@ -1,0 +1,10 @@
+Just a humongous clock for the terminal
+
+Type mongoclock in the terminal and it
+will either, depending on the terminal
+size, show the time HH:MM:SS or HH:MM
+with humongous digits.
+
+If the terminal is too small, it will
+not run.
+
