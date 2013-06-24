@@ -24,7 +24,7 @@ info: mongoclock.info.gz
 
 mongoclock.install: mongoclock
 	cp "$<" "$@"
-	sed -i 's:$$0.py:$(DESTDIR)$(PREFIX)$(LIBEXEC)/$(COMMAND).py:g' "$@"
+	sed -i 's:$$0.py:$(PREFIX)$(LIBEXEC)/$(COMMAND).py:g' "$@"
 
 install: install-cmd install-license install-info
 
