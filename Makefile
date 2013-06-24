@@ -44,6 +44,7 @@ install-info: mongoclock.info.gz
 
 uninstall:
 	-rm -- "$(DESTDIR)$(PREFIX)$(BIN)/$(COMMAND)"
+	-rm -- "$(DESTDIR)$(PREFIX)$(LIBEXEC)/$(COMMAND).py"
 	-rm -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)/COPYING"
 	-rm -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)/LICENSE"
 	-rmdir -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
