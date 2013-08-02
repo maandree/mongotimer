@@ -3,6 +3,8 @@ __pycache__/
 \#*\#
 .*
 !.git*
+/dist/archlinux/stable
+!/dist/archlinux/stable/PKGBUILD
 *~
 *.swp
 *.swo
