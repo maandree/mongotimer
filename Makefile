@@ -36,7 +36,7 @@ install-cmd:
 
 install-license:
 	install -dm755 "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
-	install -m644 COPYING LICENSE "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
+	install -m644 COPYING "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
 
 install-info: mongoclock.info.gz
 	install -dm755 "$(DESTDIR)$(PREFIX)$(DATA)/info"
@@ -46,7 +46,6 @@ uninstall:
 	-rm -- "$(DESTDIR)$(PREFIX)$(BIN)/$(COMMAND)"
 	-rm -- "$(DESTDIR)$(PREFIX)$(LIBEXEC)/$(COMMAND).py"
 	-rm -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)/COPYING"
-	-rm -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)/LICENSE"
 	-rmdir -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
 	-rm -- "$(DESTDIR)$(PREFIX)$(DATA)/info/$(PKGNAME).info.gz"
 
