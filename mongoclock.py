@@ -13,7 +13,7 @@ import sys
 from subprocess import Popen, PIPE
 
 def awesome(list):
-    return [elem.replace('X', ' ').replace('[', '\033[07m ').replace(']', '\033[00m ') for elem in list]
+    return [elem.replace('X', ' ').replace('[', '\033[07m ').replace(']', ' \033[00m') for elem in list]
 
 
 MONGO_0 = ['    [XXXX]      ',
