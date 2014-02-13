@@ -2,7 +2,7 @@
 
 pkgname=mongoclock
 pkgver=1.1
-pkgrel=1
+pkgrel=2
 pkgdesc='Just a humongous clock for the terminal'
 arch=(any)
 url='https://github.com/maandree/mongoclock'
@@ -15,11 +15,11 @@ sha256sums=(5b0b98729626d6fdfcdae94539385b80f12d4d14a6963a019831a79c94528947)
 
 build() {
     cd "$srcdir/mongoclock-$pkgver"
-    make
+    make LIBEXEC=/lib/mongoclock
 }
 
 package() {
     cd "$srcdir/mongoclock-$pkgver"
-    make DESTDIR="${pkgdir}" install
+    make LIBEXEC=/lib/mongoclock DESTDIR="${pkgdir}" install
 }
 
