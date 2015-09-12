@@ -1,0 +1,22 @@
+RUNTIME DEPENDENCIES:
+
+	glibc
+	linux
+	gpp (http://www.github.com/maandree/gpp)
+
+
+BUILD DEPENDENCIES:
+
+	glibc
+	gcc
+	linux-api-headers
+	make
+	coreutils
+	texinfo (opt-out: for info manual)
+
+
+INSTALL DEPENDENCIES:
+
+	make
+	coreutils
+

@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
   const char** digits[9];
   size_t x = 0, y = 0;
   struct winsize winsize;
-  int small = 0, fd;
+  int small = 0, fd = -1;
   struct itimerspec itimerspec;
   char _buf[8];
   
@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
       if (caught_sigwinch)
 	{
 	  caught_sigwinch = 0;
-	  t (TEMP_FAILURE_RETRY(ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize)));
+	  t (TEMP_FAILURE_RETRY(ioctl(STDOUT_FILENO, (unsigned long)TIOCGWINSZ, &winsize)));
 	  y = winsize.ws_row;
 	  x = winsize.ws_col;
 	  if      (y < DY)               small = 2;
@@ -287,7 +287,7 @@ int main(int argc, char* argv[])
       
       print_time(digits, y, x);
       
-      if (read(fd, _buf, 8) < 0)
+      if (read(fd, _buf, (size_t)8) < 0)
 	if (errno != EINTR)
 	  goto fail;
     }
@@ -301,7 +301,8 @@ int main(int argc, char* argv[])
   perror(*argv);
   fprintf(stdout, "\033[?25h\n\033[?1049l");
   fflush(stdout);
-  TEMP_FAILURE_RETRY(close(fd));
+  if (fd >= 0)
+    TEMP_FAILURE_RETRY(close(fd));
   return 1;
   (void) argc;
 }
