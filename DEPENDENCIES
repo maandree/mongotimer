@@ -2,7 +2,6 @@ RUNTIME DEPENDENCIES:
 
 	glibc
 	linux
-	gpp (http://www.github.com/maandree/gpp)
 
 
 BUILD DEPENDENCIES:
@@ -14,6 +13,7 @@ BUILD DEPENDENCIES:
 	make
 	coreutils
 	texinfo (opt-out: for info manual)
+	gpp (http://www.github.com/maandree/gpp)
 
 
 INSTALL DEPENDENCIES:
