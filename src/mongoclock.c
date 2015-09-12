@@ -237,6 +237,10 @@ int main(int argc, char* argv[])
   signal(SIGQUIT, sigterm);
   signal(SIGINT, sigterm);
   signal(SIGWINCH, sigwinch);
+  siginterrupt(SIGTERM, 1);
+  siginterrupt(SIGQUIT, 1);
+  siginterrupt(SIGINT, 1);
+  siginterrupt(SIGWINCH, 1);
   
   while (!caught_sigterm)
     {
