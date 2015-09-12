@@ -9,6 +9,7 @@ BUILD DEPENDENCIES:
 
 	glibc
 	gcc
+	sed
 	linux-api-headers
 	make
 	coreutils
