@@ -6,3 +6,13 @@ or HH:MM:SS with humongous digits.
 
 If the terminal is too small, it will not run.
 
+
+mongoclock is designed to be fit on most screens
+and be readable from all practical distances, so
+that it can be used in place of a standard wall-
+or alarm-clock. If the font is not big enough for
+your (or if it is too large,) just change the
+font size on your terminal. If it is not the
+right colour for you, simply change the font
+colour on your terminal. ☺
+
