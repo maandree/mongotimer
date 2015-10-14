@@ -298,12 +298,11 @@ int main(int argc, char* argv[])
   return 0;
   
  fail:
-  perror(*argv);
+  perror(argc ? *argv : "mongoclock");
   fprintf(stdout, "\033[?25h\n\033[?1049l");
   fflush(stdout);
   if (fd >= 0)
     close(fd);
   return 1;
-  (void) argc;
 }
 
