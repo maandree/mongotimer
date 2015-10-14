@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
   
   fprintf(stdout, "\033[?25h\n\033[?1049l");
   fflush(stdout);
-  TEMP_FAILURE_RETRY(close(fd));
+  close(fd);
   return 0;
   
  fail:
@@ -302,7 +302,7 @@ int main(int argc, char* argv[])
   fprintf(stdout, "\033[?25h\n\033[?1049l");
   fflush(stdout);
   if (fd >= 0)
-    TEMP_FAILURE_RETRY(close(fd));
+    close(fd);
   return 1;
   (void) argc;
 }
