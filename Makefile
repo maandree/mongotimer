@@ -108,7 +108,7 @@ install: install-base install-info install-man
 install-all: install-base install-doc
 
 .PHONY: install-base
-install-base: install-cmd install-license
+install-base: install-command install-license
 
 .PHONY: install-command
 install-command: bin/mongoclock
@@ -117,8 +117,8 @@ install-command: bin/mongoclock
 
 .PHONY: install-license
 install-license:
-	install -dm755        -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
-	install -m644 COPYING -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
+	install -dm755                -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
+	install -m644 COPYING LICENSE -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
 
 .PHONY: install-doc
 install-doc: install-info install-pdf install-dvi install-ps install-man
@@ -154,6 +154,7 @@ install-man: doc/man/mongoclock.1
 uninstall:
 	-rm    -- "$(DESTDIR)$(BINDIR)/$(COMMAND)"
 	-rm    -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/COPYING"
+	-rm    -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/LICENSE"
 	-rmdir -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
 	-rm    -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
 	-rm    -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
