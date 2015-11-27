@@ -102,7 +102,7 @@ bin/%.ps: doc/info/%.texinfo
 
 
 .PHONY: install
-install: install-base install-info
+install: install-base install-info install-man
 
 .PHONY: install-all
 install-all: install-base install-doc
@@ -121,7 +121,7 @@ install-license:
 	install -m644 COPYING -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
 
 .PHONY: install-doc
-install-doc: install-info install-pdf install-dvi install-ps
+install-doc: install-info install-pdf install-dvi install-ps install-man
 
 .PHONY: install-info
 install-info: bin/mongoclock.info
@@ -143,6 +143,11 @@ install-ps: bin/mongoclock.ps
 	install -dm755   -- "$(DESTDIR)$(DOCDIR)"
 	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
 
+.PHONY: install-man
+install-man: doc/man/mongoclock.1
+	install -dm755   -- "$(DESTDIR)$(MAN1DIR)"
+	install -m644 $< -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
+
 
 
 .PHONY: uninstall
@@ -154,6 +159,7 @@ uninstall:
 	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
 	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
 	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
+	-rm -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
 
 
 
