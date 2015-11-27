@@ -156,10 +156,10 @@ uninstall:
 	-rm    -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/COPYING"
 	-rmdir -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
 	-rm    -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
-	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
-	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
-	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
-	-rm -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
+	-rm    -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
+	-rm    -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
+	-rm    -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
+	-rm    -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
 
 
 
