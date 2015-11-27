@@ -1,12 +1,12 @@
 # Maintainer: Mattias Andrée <`base64 -d`(bWFhbmRyZWUK)@member.fsf.org>
 
 pkgname=mongoclock
-pkgver=2.1
+pkgver=2.2
 pkgrel=1
 pkgdesc='Just a humongous clock for the terminal'
 arch=(any)
 url='https://github.com/maandree/mongoclock'
-license=('custom: GNUAllPermissive')
+license=('GPL3')
 depends=(glibc linux)
 makedepends=(linux-api-headers general-preprocessor)
 source=("${url}/archive/${pkgver}.tar.gz")
