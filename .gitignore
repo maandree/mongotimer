@@ -5,8 +5,6 @@ obj/
 \#*\#
 .*
 !.git*
-/dist/archlinux/stable
-!/dist/archlinux/stable/PKGBUILD
 *~
 *.swp
 *.swo
