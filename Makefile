@@ -1,170 +1,68 @@
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+.POSIX:
 
-PREFIX = /usr
-BIN = /bin
-DATA = /share
-BINDIR = $(PREFIX)$(BIN)
-DATADIR = $(PREFIX)$(DATA)
-DOCDIR = $(DATADIR)/doc
-INFODIR = $(DATADIR)/info
-MANDIR = $(DATADIR)/man
-MAN1DIR = $(MANDIR)/man1
-LICENSEDIR = $(DATADIR)/licenses
+CONFIGFILE = config.mk
+include $(CONFIGFILE)
 
-PKGNAME = mongoclock
-COMMAND = mongoclock
+DIGITS =\
+	mongo_0.h mongo_1.h mongo_2.h mongo_3.h mongo_4.h \
+	mongo_5.h mongo_6.h mongo_7.h mongo_8.h mongo_9.h \
+	mongo_c.h
 
-GPP = gpp
+all: mongoclock
 
+mongoclock: mongoclock.o
+	$(CC) -o $@ $^ $(LDFLAGS)
 
-WARN = -Wall -Wextra -pedantic -Wdouble-promotion -Wformat=2 -Winit-self -Wmissing-include-dirs      \
-       -Wtrampolines -Wmissing-prototypes -Wmissing-declarations -Wnested-externs                    \
-       -Wno-variadic-macros -Wsync-nand -Wunsafe-loop-optimizations -Wcast-align                     \
-       -Wdeclaration-after-statement -Wundef -Wbad-function-cast -Wwrite-strings -Wlogical-op        \
-       -Wstrict-prototypes -Wold-style-definition -Wpacked -Wvector-operation-performance            \
-       -Wunsuffixed-float-constants -Wsuggest-attribute=const -Wsuggest-attribute=noreturn           \
-       -Wsuggest-attribute=format -Wnormalized=nfkc -Wshadow -Wredundant-decls -Winline -Wcast-qual  \
-       -Wsign-conversion -Wstrict-overflow=5 -Wconversion -Wsuggest-attribute=pure -Wswitch-default  \
-       -Wstrict-aliasing=1 -fstrict-overflow -Wfloat-equal -Wpadded -Waggregate-return               \
-       -Wtraditional-conversion
+mongoclock.o: mongoclock.c $(DIGITS)
+	$(CC) -c -o $@ mongoclock.c $(CPPFLAGS) $(CFLAGS)
 
-FFLAGS = -fstrict-aliasing -fipa-pure-const -ftree-vrp -fstack-usage -funsafe-loop-optimizations
-STD = c99
-OPTIMISE = -O2
+mongo_0.h: digit.sh
+	./digit.sh 0 > $@
 
-FLAGS = $(OPTIMISE) -std=$(STD) $(WARN) $(FFLAGS)
+mongo_1.h: digit.sh
+	./digit.sh 1 > $@
 
+mongo_2.h: digit.sh
+	./digit.sh 2 > $@
 
+mongo_3.h: digit.sh
+	./digit.sh 3 > $@
 
-.PHONY: default
-default: command info
+mongo_4.h: digit.sh
+	./digit.sh 4 > $@
 
-.PHONY: all
-all: command doc
+mongo_5.h: digit.sh
+	./digit.sh 5 > $@
 
-.PHONY: base
-base: command
+mongo_6.h: digit.sh
+	./digit.sh 6 > $@
 
-.PHONY: command
-command: bin/mongoclock
+mongo_7.h: digit.sh
+	./digit.sh 7 > $@
 
-bin/mongoclock: obj/mongoclock.o
-	mkdir -p bin
-	$(CC) $(FLAGS) -o $@ $^ $(LDFLAGS)
+mongo_8.h: digit.sh
+	./digit.sh 8 > $@
 
-obj/mongoclock.o: obj/mongoclock.c
-	$(CC) $(FLAGS) -c -o $@ $< $(CPPFLAGS) $(CFLAGS)
+mongo_9.h: digit.sh
+	./digit.sh 9 > $@
 
-obj/mongoclock.c: src/mongoclock.c
-	mkdir -p obj
-	$(GPP) -s '$$' -i $< -o $@
+mongo_c.h: digit.sh
+	./digit.sh c > $@
 
-.PHONY: doc
-doc: info pdf dvi ps
+install: mongoclock
+	mkdir -p -- "$(DESTDIR)$(PREFIX)/bin"
+	mkdir -p -- "$(DESTDIR)$(PREFIX)/share/licenses/mongoclock"
+	mkdir -p -- "$(DESTDIR)$(MANPREFIX)/man1"
+	cp -- mongoclock "$(DESTDIR)$(PREFIX)/bin/"
+	cp -- LICENSE "$(DESTDIR)$(PREFIX)/share/licenses/mongoclock/"
+	cp -- mongoclock.1 "$(DESTDIR)$(MANPREFIX)/man1/"
 
-.PHONY: info
-info: bin/mongoclock.info
-
-.PHONY: info
-info: bin/mongoclock.info
-bin/%.info: doc/info/%.texinfo
-	@mkdir -p bin
-	$(MAKEINFO) $<
-	mv $*.info $@
-
-.PHONY: pdf
-pdf: bin/mongoclock.pdf
-bin/%.pdf: doc/info/%.texinfo
-	@! test -d obj/pdf || rm -rf obj/pdf
-	@mkdir -p bin obj/pdf
-	cd obj/pdf && texi2pdf ../../"$<" < /dev/null
-	mv obj/pdf/$*.pdf $@
-
-.PHONY: dvi
-dvi: bin/mongoclock.dvi
-bin/%.dvi: doc/info/%.texinfo
-	@! test -d obj/dvi || rm -rf obj/dvi
-	@mkdir -p bin obj/dvi
-	cd obj/dvi && $(TEXI2DVI) ../../"$<" < /dev/null
-	mv obj/dvi/$*.dvi $@
-
-.PHONY: ps
-ps: bin/mongoclock.ps
-bin/%.ps: doc/info/%.texinfo
-	@! test -d obj/ps || rm -rf obj/ps
-	@mkdir -p bin obj/ps
-	cd obj/ps && texi2pdf --ps ../../"$<" < /dev/null
-	mv obj/ps/$*.ps $@
-
-
-
-.PHONY: install
-install: install-base install-info install-man
-
-.PHONY: install-all
-install-all: install-base install-doc
-
-.PHONY: install-base
-install-base: install-command install-license
-
-.PHONY: install-command
-install-command: bin/mongoclock
-	install -dm755   -- "$(DESTDIR)$(BINDIR)"
-	install -m755 $< -- "$(DESTDIR)$(BINDIR)/$(COMMAND)"
-
-.PHONY: install-license
-install-license:
-	install -dm755                -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
-	install -m644 COPYING LICENSE -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
-
-.PHONY: install-doc
-install-doc: install-info install-pdf install-dvi install-ps install-man
-
-.PHONY: install-info
-install-info: bin/mongoclock.info
-	install -dm755   -- "$(DESTDIR)$(INFODIR)"
-	install -m644 $< -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
-
-.PHONY: install-pdf
-install-pdf: bin/mongoclock.pdf
-	install -dm755   -- "$(DESTDIR)$(DOCDIR)"
-	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
-
-.PHONY: install-dvi
-install-dvi: bin/mongoclock.dvi
-	install -dm755   -- "$(DESTDIR)$(DOCDIR)"
-	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
-
-.PHONY: install-ps
-install-ps: bin/mongoclock.ps
-	install -dm755   -- "$(DESTDIR)$(DOCDIR)"
-	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
-
-.PHONY: install-man
-install-man: doc/man/mongoclock.1
-	install -dm755   -- "$(DESTDIR)$(MAN1DIR)"
-	install -m644 $< -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
-
-
-
-.PHONY: uninstall
 uninstall:
-	-rm    -- "$(DESTDIR)$(BINDIR)/$(COMMAND)"
-	-rm    -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/COPYING"
-	-rm    -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/LICENSE"
-	-rmdir -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
-	-rm    -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
-	-rm    -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
-	-rm    -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
-	-rm    -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
-	-rm    -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
+	-rm -- "$(DESTDIR)$(PREFIX)/bin/mongoclock"
+	-rm -- "$(DESTDIR)$(MANPREFIX)/man1/mongoclock.1"
+	-rm -r -- "$(DESTDIR)$(PREFIX)/share/licenses/mongoclock"
 
-
-
-.PHONY: clean
 clean:
-	-rm -f bin obj
+	-rm -f -- *.o mongoclock mongo_*.h
 
+.PHONY: all install uninstall clean
