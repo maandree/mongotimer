@@ -20,6 +20,17 @@ DESCRIPTION
 	right colour for you, simply change the font
 	colour on your terminal. ☺
 
+OPTIONS
+	The mongoclock utility shall conform to the Base
+	Definitions volume of POSIX.1‐2008, Section 12.2,
+	Utility Syntax Guidelines.
+
+	The following options shall be supported:
+
+	-s	Display the posix time (seconds since
+		1970-01-01 00:00:00 UTC, ignoring inserted
+		and removed leap seconds).
+
 RATIONALE
 	It is really nice to have a large clock on your
 	computer, instead of a small clock somewhere in

@@ -80,18 +80,15 @@ print_time(const char ***str, size_t y, size_t x)
 	fflush(stdout);
 }
 
-int
-main(int argc, char *argv[])
+static int
+display_time(int timerfd)
 {
-	struct tm *now;
 	const char **digits[9];
-	size_t x = 0, y = 0;
-	struct winsize winsize;
 	int small = 0;
-	int fd = -1;
-	struct itimerspec itimerspec;
 	uint64_t _overrun;
-	struct sigaction sigact;
+	struct winsize winsize;
+	size_t x = 0, y = 0;
+	struct tm *now;
 #ifdef USE_ADJTIMEX
 	struct timex timex;
 	int r;
@@ -99,41 +96,11 @@ main(int argc, char *argv[])
 	time_t now_;
 #endif
 
-	ARGBEGIN {
-	default:
-		usage();
-	} ARGEND;
-
-	if (argc)
-		usage();
-
-	fprintf(stdout, "\033[?1049h\033[?25l");
-
-	if (clock_gettime(CLOCK_REALTIME, &itimerspec.it_value))
-		goto fail;
-	itimerspec.it_interval.tv_sec = 1;
-	itimerspec.it_interval.tv_nsec = 0;
-	itimerspec.it_value.tv_sec += 1;
-	itimerspec.it_value.tv_nsec = 0;
-	fd = timerfd_create(CLOCK_REALTIME, 0);
-	if (fd < 0)
-		goto fail;
-	if (timerfd_settime(fd, TFD_TIMER_ABSTIME, &itimerspec, NULL))
-		goto fail;
-
-	memset(&sigact, 0, sizeof(sigact));
-
-	sigact.sa_handler = sigterm;
-	sigaction(SIGTERM, &sigact, NULL);
-	sigaction(SIGQUIT, &sigact, NULL);
-	sigaction(SIGINT, &sigact, NULL);
-
-	sigact.sa_handler = sigwinch;
-	sigaction(SIGWINCH, &sigact, NULL);
-
 #ifdef USE_ADJTIMEX
 	memset(&timex, 0, sizeof(timex));
 #endif
+
+	digits[8] = NULL;
 
 	while (!caught_sigterm) {
 		if (caught_sigwinch) {
@@ -190,26 +157,134 @@ main(int argc, char *argv[])
 		digits[5] = small ? NULL : mongo_c;
 		digits[6] = mongo_ds[now->tm_sec / 10];
 		digits[7] = mongo_ds[now->tm_sec % 10];
-		digits[8] = NULL;
 
 		print_time(digits, y, x);
 
-		if (read(fd, &_overrun, sizeof(_overrun)) < 0)
+		if (read(timerfd, &_overrun, sizeof(_overrun)) < 0)
 			if (errno != EINTR)
 				goto fail;
 	}
 
+	return 0;
+
+fail:
+	return -1;
+}
+
+static int
+display_posixtime(int timerfd)
+{
+	const char **digits[21];
+	uint64_t _overrun;
+	struct winsize winsize;
+	size_t w = 0, h = 0, x, y;
+	time_t now;
+	size_t first_digit, ndigits;
+
+	digits[20] = NULL;
+
+	while (!caught_sigterm) {
+		if (caught_sigwinch) {
+			if (ioctl(STDOUT_FILENO, (unsigned long)TIOCGWINSZ, &winsize) < 0) {
+				if (errno == EINTR)
+					continue;
+				goto fail;
+			}
+			caught_sigwinch = 0;
+			h = winsize.ws_row;
+			w = winsize.ws_col;
+		}
+
+		now = time(NULL);
+		if (now < 0)
+			goto fail;
+
+		first_digit = 20;
+		do {
+			if (!first_digit)
+				abort();
+			digits[--first_digit] = mongo_ds[now % 10];
+		} while (now /= 10);
+		ndigits = 20 - first_digit;
+
+		if (h < DY || w < ndigits * DX) {
+			fprintf(stdout, "\033[H\033[2J%s\n", "Screen is too small");
+			fflush(stdout);
+			pause();
+			continue;
+		}
+
+		y = (h - DY) / 2;
+		x = (w - ndigits * DX) / 2;
+		print_time(&digits[first_digit], y, x);
+
+		if (read(timerfd, &_overrun, sizeof(_overrun)) < 0)
+			if (errno != EINTR)
+				goto fail;
+	}
+
+	return 0;
+
+fail:
+	return -1;
+}
+
+int
+main(int argc, char *argv[])
+{
+	int timerfd = -1;
+	int posixtime = 0;
+	struct itimerspec itimerspec;
+	struct sigaction sigact;
+
+	ARGBEGIN {
+	case 's':
+		posixtime = 1;
+		break;
+	default:
+		usage();
+	} ARGEND;
+
+	if (argc)
+		usage();
+
+	fprintf(stdout, "\033[?1049h\033[?25l");
+
+	if (clock_gettime(CLOCK_REALTIME, &itimerspec.it_value))
+		goto fail;
+	itimerspec.it_interval.tv_sec = 1;
+	itimerspec.it_interval.tv_nsec = 0;
+	itimerspec.it_value.tv_sec += 1;
+	itimerspec.it_value.tv_nsec = 0;
+	timerfd = timerfd_create(CLOCK_REALTIME, 0);
+	if (timerfd < 0)
+		goto fail;
+	if (timerfd_settime(timerfd, TFD_TIMER_ABSTIME, &itimerspec, NULL))
+		goto fail;
+
+	memset(&sigact, 0, sizeof(sigact));
+
+	sigact.sa_handler = sigterm;
+	sigaction(SIGTERM, &sigact, NULL);
+	sigaction(SIGQUIT, &sigact, NULL);
+	sigaction(SIGINT, &sigact, NULL);
+
+	sigact.sa_handler = sigwinch;
+	sigaction(SIGWINCH, &sigact, NULL);
+
+	if (posixtime ? display_posixtime(timerfd) : display_time(timerfd))
+		goto fail;
+
 	fprintf(stdout, "\033[?25h\n\033[?1049l");
 	fflush(stdout);
-	close(fd);
+	close(timerfd);
 	return 0;
-  
+
 fail:
 	perror(argv0 ? argv0 : "mongoclock");
 	fprintf(stdout, "\033[?25h\n\033[?1049l");
 	fflush(stdout);
-	if (fd >= 0)
-		close(fd);
+	if (timerfd >= 0)
+		close(timerfd);
 	return 1;
 }
-
