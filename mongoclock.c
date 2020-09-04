@@ -9,6 +9,9 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#ifdef USE_ADJTIMEX
+# include <sys/timex.h>
+#endif
 
 #include "arg.h"
 
@@ -80,7 +83,6 @@ print_time(const char ***str, size_t y, size_t x)
 int
 main(int argc, char *argv[])
 {
-	time_t now_;
 	struct tm *now;
 	const char **digits[9];
 	size_t x = 0, y = 0;
@@ -90,6 +92,12 @@ main(int argc, char *argv[])
 	struct itimerspec itimerspec;
 	uint64_t _overrun;
 	struct sigaction sigact;
+#ifdef USE_ADJTIMEX
+	struct timex timex;
+	int r;
+#else
+	time_t now_;
+#endif
 
 	ARGBEGIN {
 	default:
@@ -123,6 +131,10 @@ main(int argc, char *argv[])
 	sigact.sa_handler = sigwinch;
 	sigaction(SIGWINCH, &sigact, NULL);
 
+#ifdef USE_ADJTIMEX
+	memset(&timex, 0, sizeof(timex));
+#endif
+
 	while (!caught_sigterm) {
 		if (caught_sigwinch) {
 			if (ioctl(STDOUT_FILENO, (unsigned long)TIOCGWINSZ, &winsize) < 0) {
@@ -152,12 +164,23 @@ main(int argc, char *argv[])
 			continue;
 		}
 
+#ifdef USE_ADJTIMEX
+		r = adjtimex(&timex);
+		if (r == -1)
+			goto fail;
+		now = localtime(&timex.time.tv_sec);
+		if (now == NULL)
+			goto fail;
+		if (r == TIME_OOP)
+			now->tm_sec += 1;
+#else
 		now_ = time(NULL);
 		if (now_ == -1)
 			goto fail;
 		now = localtime(&now_);
 		if (now == NULL)
 			goto fail;
+#endif
 
 		digits[0] = mongo_ds[now->tm_hour / 10];
 		digits[1] = mongo_ds[now->tm_hour % 10];
