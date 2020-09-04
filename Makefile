@@ -13,7 +13,7 @@ all: mongoclock
 mongoclock: mongoclock.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-mongoclock.o: mongoclock.c $(DIGITS)
+mongoclock.o: mongoclock.c arg.h $(DIGITS)
 	$(CC) -c -o $@ mongoclock.c $(CPPFLAGS) $(CFLAGS)
 
 mongo_0.h: digit.sh

@@ -5,8 +5,11 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "arg.h"
 
 #define DX 16
 #define DY 12
@@ -31,6 +34,15 @@ static const char **mongo_ds[] = {
 
 static volatile sig_atomic_t caught_sigterm = 0;
 static volatile sig_atomic_t caught_sigwinch = 1;
+
+char *argv0;
+
+static void
+usage(void)
+{
+	fprintf(stderr, "usage: %s\n", argv0);
+	exit(1);
+}
 
 static void
 sigterm(int signo)
@@ -76,6 +88,14 @@ main(int argc, char *argv[])
 	int fd = -1;
 	struct itimerspec itimerspec;
 	uint64_t _overrun;
+
+	ARGBEGIN {
+	default:
+		usage();
+	} ARGEND;
+
+	if (argc)
+		usage();
 
 	fprintf(stdout, "\033[?1049h\033[?25l");
 
