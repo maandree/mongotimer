@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -88,6 +89,7 @@ main(int argc, char *argv[])
 	int fd = -1;
 	struct itimerspec itimerspec;
 	uint64_t _overrun;
+	struct sigaction sigact;
 
 	ARGBEGIN {
 	default:
@@ -111,14 +113,15 @@ main(int argc, char *argv[])
 	if (timerfd_settime(fd, TFD_TIMER_ABSTIME, &itimerspec, NULL))
 		goto fail;
 
-	signal(SIGTERM, sigterm);
-	signal(SIGQUIT, sigterm);
-	signal(SIGINT, sigterm);
-	signal(SIGWINCH, sigwinch);
-	siginterrupt(SIGTERM, 1);
-	siginterrupt(SIGQUIT, 1);
-	siginterrupt(SIGINT, 1);
-	siginterrupt(SIGWINCH, 1);
+	memset(&sigact, 0, sizeof(sigact));
+
+	sigact.sa_handler = sigterm;
+	sigaction(SIGTERM, &sigact, NULL);
+	sigaction(SIGQUIT, &sigact, NULL);
+	sigaction(SIGINT, &sigact, NULL);
+
+	sigact.sa_handler = sigwinch;
+	sigaction(SIGWINCH, &sigact, NULL);
 
 	while (!caught_sigterm) {
 		if (caught_sigwinch) {
