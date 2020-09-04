@@ -205,7 +205,7 @@ main(int argc, char *argv[])
 	return 0;
   
 fail:
-	perror(argc ? *argv : "mongoclock");
+	perror(argv0 ? argv0 : "mongoclock");
 	fprintf(stdout, "\033[?25h\n\033[?1049l");
 	fflush(stdout);
 	if (fd >= 0)
