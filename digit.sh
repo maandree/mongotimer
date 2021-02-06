@@ -176,6 +176,22 @@ mongo_c() {
 	       '                '
 }
 
+mongo_m() {
+	printf '%s\n' \
+	       '                ' \
+	       '                ' \
+	       '                ' \
+	       '                ' \
+	       '                ' \
+	       '  [XXXXXXXXXX]  ' \
+	       '  [XXXXXXXXXX]  ' \
+	       '                ' \
+	       '                ' \
+	       '                ' \
+	       '                ' \
+	       '                '
+}
+
 digit() {
 	if test "$1" = 0; then
 		mongo_0
@@ -197,14 +213,16 @@ digit() {
 		mongo_8
 	elif test "$1" = 9; then
 		mongo_9
-	else
+	elif test "$1" = c; then
 		mongo_c
+	else
+		mongo_m
 	fi
 }
 
 printf 'static const char *mongo_%s[] = {\n' "$1"
 digit "$1" | \
-    sed -e 's/X/ /g' -e 's/\[/\\033\[7m /g' -e 's/\]/\\033\[m /g' | \
+    sed -e 's/X/ /g' -e 's/\[/\\033\[7m /g' -e 's/\]/\\033\[27m /g' | \
     sed -e 's/^/"/' -e 's/$/",/' | \
     sed '$s/,$//'
 printf '};\n'

@@ -1,0 +1,46 @@
+.TH MONGOTIMER 1 MONGOTIMER
+.SH NAME
+mongotimer - A humongous timer or stopwatch for the terminal
+.SH SYNOPSIS
+.BR mongotimer
+[[-e]
+.RI [[ hh\fB: ] mm\fB: ] ss ]
+.SH DESCRIPTION
+.B mongotimer
+will, if no arguments are specified, simply
+display time since it started. If a time is
+specified, it will count down from that time.
+.PP
+Pressing space will pause the timer/stopwatch,
+and the time be displayed in yellow will paused.
+Pressing space again will unpause the
+timer/stopwatch.
+.PP
+.B mongotimer
+is designed to be fit on most screens and be
+readable from all practical distances, so that
+it can be used in place of a standard wall- or
+alarm-clock. If the font is not big enough for
+your (or if it is too large,) just change the
+font size on your terminal. If it is not the
+right colour for you, simply change the font
+colour on your terminal
+.SH OPTIONS
+The
+.B cp
+utility shall conform to the Base Definitions
+volume of POSIX.1-2008,
+.IR "Section 12.2, Utility Syntax Guidelines" .
+.PP
+The following options shall be supported:
+.TP
+.B -e
+Exit with status 0 when the timer reaches 0.
+If not specified, the timer will continue
+into negative times but with a red font.
+.SH "SEE ALSO"
+.BR mongoclock (1)
+.BR watch (1)
+.SH AUTHORS
+Mattias Andrée
+.RI < maandree@kth.se >

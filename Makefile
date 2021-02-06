@@ -6,15 +6,15 @@ include $(CONFIGFILE)
 DIGITS =\
 	mongo_0.h mongo_1.h mongo_2.h mongo_3.h mongo_4.h \
 	mongo_5.h mongo_6.h mongo_7.h mongo_8.h mongo_9.h \
-	mongo_c.h
+	mongo_c.h mongo_m.h
 
-all: mongoclock
+all: mongotimer
 
-mongoclock: mongoclock.o
-	$(CC) -o $@ $^ $(LDFLAGS)
+mongotimer: mongotimer.o
+	$(CC) -o $@ mongotimer.o $(LDFLAGS)
 
-mongoclock.o: mongoclock.c arg.h $(DIGITS)
-	$(CC) -c -o $@ mongoclock.c $(CPPFLAGS) $(CFLAGS)
+mongotimer.o: mongotimer.c arg.h $(DIGITS)
+	$(CC) -c -o $@ mongotimer.c $(CPPFLAGS) $(CFLAGS)
 
 mongo_0.h: digit.sh
 	./digit.sh 0 > $@
@@ -49,20 +49,23 @@ mongo_9.h: digit.sh
 mongo_c.h: digit.sh
 	./digit.sh c > $@
 
-install: mongoclock
+mongo_m.h: digit.sh
+	./digit.sh m > $@
+
+install: mongotimer
 	mkdir -p -- "$(DESTDIR)$(PREFIX)/bin"
-	mkdir -p -- "$(DESTDIR)$(PREFIX)/share/licenses/mongoclock"
+	mkdir -p -- "$(DESTDIR)$(PREFIX)/share/licenses/mongotimer"
 	mkdir -p -- "$(DESTDIR)$(MANPREFIX)/man1"
-	cp -- mongoclock "$(DESTDIR)$(PREFIX)/bin/"
-	cp -- LICENSE "$(DESTDIR)$(PREFIX)/share/licenses/mongoclock/"
-	cp -- mongoclock.1 "$(DESTDIR)$(MANPREFIX)/man1/"
+	cp -- mongotimer "$(DESTDIR)$(PREFIX)/bin/"
+	cp -- LICENSE "$(DESTDIR)$(PREFIX)/share/licenses/mongotimer/"
+	cp -- mongotimer.1 "$(DESTDIR)$(MANPREFIX)/man1/"
 
 uninstall:
-	-rm -- "$(DESTDIR)$(PREFIX)/bin/mongoclock"
-	-rm -- "$(DESTDIR)$(MANPREFIX)/man1/mongoclock.1"
-	-rm -r -- "$(DESTDIR)$(PREFIX)/share/licenses/mongoclock"
+	-rm -- "$(DESTDIR)$(PREFIX)/bin/mongotimer"
+	-rm -- "$(DESTDIR)$(MANPREFIX)/man1/mongotimer.1"
+	-rm -r -- "$(DESTDIR)$(PREFIX)/share/licenses/mongotimer"
 
 clean:
-	-rm -f -- *.o mongoclock mongo_*.h
+	-rm -f -- *.o mongotimer mongo_*.h
 
 .PHONY: all install uninstall clean

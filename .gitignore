@@ -4,4 +4,4 @@
 *.out
 *.su
 mongo_*.h
-/mongoclock
+/mongotimer
