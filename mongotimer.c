@@ -269,7 +269,7 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 		x = winsize.ws_col;
 		for (h_div = 1, h_digits = 0; h / h_div; h_div *= 10, h_digits += 1);
 		width = 4 * DX + DC;
-		if (time < 0)
+		if (time <= 0)
 			width += DM;
 		if (h_digits)
 			width += h_digits * DX + DC;
@@ -289,7 +289,7 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 		}
 
 		i = 0;
-		if (time < 0)
+		if (time <= 0)
 			digits[i++] = mongo_m;
 		if (h_digits) {
 			for (th = h; th; th /= 10)
@@ -309,7 +309,7 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 			fprintf(stdout, "\033[39m\n");
 			pause();
 			continue;
-		} else if (time >= 0) {
+		} else if (time > 0) {
 			print_time(digits, y, x);
 		} else {
 			fprintf(stdout, "\033[31m\n");
@@ -340,7 +340,7 @@ fail:
 int
 main(int argc, char *argv[])
 {
-	int timerfd = -1, old_flags = -1;
+	int timerfd = -1, old_flags = -1, tcset = 0;
 	int exit_on_zero = 0, old_sig = 0;
 	struct itimerspec itimerspec;
 	struct sigaction sigact;
@@ -401,10 +401,12 @@ main(int argc, char *argv[])
 	if (old_sig)
 		fcntl(STDIN_FILENO, F_SETSIG, 0);
 
-	tcgetattr(STDIN_FILENO, &stty);
-	saved_stty = stty;
-        stty.c_lflag &= (tcflag_t)~(ECHO | ICANON);
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &stty);
+	if (!tcgetattr(STDIN_FILENO, &stty)) {
+		saved_stty = stty;
+		stty.c_lflag &= (tcflag_t)~(ECHO | ICANON);
+		tcsetattr(STDIN_FILENO, TCSAFLUSH, &stty);
+		tcset = 1;
+	}
 
 	if (argc) {
 		for (s = argv[0]; *s; s++) {
@@ -446,10 +448,10 @@ fail:
 		fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
 	if (old_flags != -1)
 		fcntl(STDIN_FILENO, F_SETFL, old_flags);
-	if (old_sig) {
+	if (old_sig)
 		fcntl(STDIN_FILENO, F_SETSIG, old_sig);
+	if (tcset)
 		tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_stty);
-	}
 	if (timerfd >= 0)
 		close(timerfd);
 	return 1;
@@ -461,9 +463,11 @@ fail_usage:
 		fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
 	if (old_flags != -1)
 		fcntl(STDIN_FILENO, F_SETFL, old_flags);
-	if (old_sig) {
+	if (old_sig)
 		fcntl(STDIN_FILENO, F_SETSIG, old_sig);
+	if (tcset)
 		tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_stty);
-	}
+	if (timerfd >= 0)
+		close(timerfd);
 	usage();
 }
