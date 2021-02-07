@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -347,6 +348,7 @@ main(int argc, char *argv[])
 	size_t colons = 0;
 	char *s;
 	struct f_owner_ex old_owner, new_owner;
+	struct termios stty, saved_stty;
 
 	ARGBEGIN {
 	case 'e':
@@ -399,7 +401,10 @@ main(int argc, char *argv[])
 	if (old_sig)
 		fcntl(STDIN_FILENO, F_SETSIG, 0);
 
-	/* TODO set ICANON and ECHO and reset on exit */
+	tcgetattr(STDIN_FILENO, &stty);
+	saved_stty = stty;
+        stty.c_lflag &= (tcflag_t)~(ECHO | ICANON);
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &stty);
 
 	if (argc) {
 		for (s = argv[0]; *s; s++) {
@@ -429,6 +434,7 @@ main(int argc, char *argv[])
 	fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
 	fcntl(STDIN_FILENO, F_SETFL, old_flags);
 	fcntl(STDIN_FILENO, F_SETSIG, old_sig);
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_stty);
 	close(timerfd);
 	return 0;
 
@@ -440,8 +446,10 @@ fail:
 		fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
 	if (old_flags != -1)
 		fcntl(STDIN_FILENO, F_SETFL, old_flags);
-	if (old_sig)
+	if (old_sig) {
 		fcntl(STDIN_FILENO, F_SETSIG, old_sig);
+		tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_stty);
+	}
 	if (timerfd >= 0)
 		close(timerfd);
 	return 1;
@@ -453,7 +461,9 @@ fail_usage:
 		fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
 	if (old_flags != -1)
 		fcntl(STDIN_FILENO, F_SETFL, old_flags);
-	if (old_sig)
+	if (old_sig) {
 		fcntl(STDIN_FILENO, F_SETSIG, old_sig);
+		tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_stty);
+	}
 	usage();
 }
