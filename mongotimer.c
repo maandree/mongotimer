@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include <sys/ioctl.h>
 #include <sys/timerfd.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdint.h>
@@ -37,6 +38,7 @@ static const char **mongo_ds[] = {
 
 static volatile sig_atomic_t caught_sigterm = 0;
 static volatile sig_atomic_t caught_sigwinch = 1;
+static volatile sig_atomic_t caught_sigio = 0;
 
 char *argv0;
 
@@ -58,6 +60,13 @@ static void
 sigwinch(int signo)
 {
 	caught_sigwinch = 1;
+	(void) signo;
+}
+
+static void
+sigio(int signo)
+{
+	caught_sigio = 1;
 	(void) signo;
 }
 
@@ -88,9 +97,12 @@ display_stopwatch(int timerfd)
 	const char **digits[23];
 	uint64_t h, m, s, h_div = 1, th;
 	size_t h_digits = 0;
-	int small = 0;
+	int small = 0, paused = 0;
+	struct itimerspec old_time, zero_time;
+	ssize_t r;
+	char c;
 
-	/* TODO pause (yellow text) on <space> */
+	memset(&zero_time, 0, sizeof(zero_time));
 
 	while (!caught_sigterm) {
 		if (caught_sigwinch) {
@@ -115,6 +127,31 @@ display_stopwatch(int timerfd)
 			x -= width;
 			y /= 2;
 			x /= 2;
+		}
+		if (caught_sigio) {
+			caught_sigio = 0;
+			for (;;) {
+				r = read(STDIN_FILENO, &c, 1);
+				if (r <= 0) {
+					if (!r)
+						goto out;
+					if (errno == EAGAIN)
+						break;
+					if (errno == EINTR)
+						continue;
+					goto fail;
+				}
+				if (c == ' ' || c == '\n') {
+					paused ^= 1;
+					if (paused) {
+						if (timerfd_settime(timerfd, 0, &zero_time, &old_time))
+							goto fail;
+					} else {
+						if (timerfd_settime(timerfd, 0, &old_time, NULL))
+							goto fail;
+					}
+				}
+			}
 		}
 
 		if (small) {
@@ -146,7 +183,15 @@ display_stopwatch(int timerfd)
 		digits[i++] = mongo_ds[s % 10];
 		digits[i++] = NULL;
 
-		print_time(digits, y, x);
+		if (paused) {
+			fprintf(stdout, "\033[33m\n");
+			print_time(digits, y, x);
+			fprintf(stdout, "\033[39m\n");
+			pause();
+			continue;
+		} else {
+			print_time(digits, y, x);
+		}
 
 		if (read(timerfd, &overrun, sizeof(overrun)) < 0) {
 			if (errno != EINTR)
@@ -156,6 +201,7 @@ display_stopwatch(int timerfd)
 		}
 	}
 
+out:
 	return 0;
 
 fail:
@@ -171,9 +217,12 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 	const char **digits[24];
 	uint64_t h, m, s, th, h_div;
 	size_t h_digits, i;
-	int small = 0;
+	int small = 0, paused = 0;
+	struct itimerspec old_time, zero_time;
+	ssize_t r;
+	char c;
 
-	/* TODO pause (yellow text) on <space> */
+	memset(&zero_time, 0, sizeof(zero_time));
 
 	while (!caught_sigterm) {
 		if (caught_sigwinch) {
@@ -183,6 +232,31 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 				goto fail;
 			}
 			caught_sigwinch = 0;
+		}
+		if (caught_sigio) {
+			caught_sigio = 0;
+			for (;;) {
+				r = read(STDIN_FILENO, &c, 1);
+				if (r <= 0) {
+					if (!r)
+						goto out;
+					if (errno == EAGAIN)
+						break;
+					if (errno == EINTR)
+						continue;
+					goto fail;
+				}
+				if (c == ' ' || c == '\n') {
+					paused ^= 1;
+					if (paused) {
+						if (timerfd_settime(timerfd, 0, &zero_time, &old_time))
+							goto fail;
+					} else {
+						if (timerfd_settime(timerfd, 0, &old_time, NULL))
+							goto fail;
+					}
+				}
+			}
 		}
 
 		abstime = time < 0 ? (uint64_t)-time : (uint64_t)time;
@@ -228,7 +302,13 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 		digits[i++] = mongo_ds[s % 10];
 		digits[i++] = NULL;
 
-		if (time >= 0) {
+		if (paused) {
+			fprintf(stdout, "\033[33m\n");
+			print_time(digits, y, x);
+			fprintf(stdout, "\033[39m\n");
+			pause();
+			continue;
+		} else if (time >= 0) {
 			print_time(digits, y, x);
 		} else {
 			fprintf(stdout, "\033[31m\n");
@@ -246,6 +326,7 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 		}
 	}
 
+out:
 	if (caught_sigterm && exit_on_zero)
 		return -1;
 
@@ -258,13 +339,14 @@ fail:
 int
 main(int argc, char *argv[])
 {
-	int timerfd = -1;
-	int exit_on_zero = 0;
+	int timerfd = -1, old_flags = -1;
+	int exit_on_zero = 0, old_sig = 0;
 	struct itimerspec itimerspec;
 	struct sigaction sigact;
-	int64_t time = 0, t = 0;
+	int64_t time = 0, t = 0, owner_set = 0;
 	size_t colons = 0;
 	char *s;
+	struct f_owner_ex old_owner, new_owner;
 
 	ARGBEGIN {
 	case 'e':
@@ -299,6 +381,26 @@ main(int argc, char *argv[])
 	sigact.sa_handler = sigwinch;
 	sigaction(SIGWINCH, &sigact, NULL);
 
+	sigact.sa_handler = sigio;
+	sigaction(SIGIO, &sigact, NULL);
+	sigaction(SIGURG, &sigact, NULL);
+
+	if (fcntl(STDIN_FILENO, F_GETOWN_EX, &old_owner))
+		goto fail;
+	memset(&new_owner, 0, sizeof(new_owner));
+	new_owner.type = F_OWNER_PID;
+	new_owner.pid = getpid();
+	if (fcntl(STDIN_FILENO, F_SETOWN_EX, &new_owner))
+		goto fail;
+	owner_set = 1;
+	old_flags = fcntl(STDIN_FILENO, F_GETFL);
+	fcntl(STDIN_FILENO, F_SETFL, old_flags | FASYNC | O_NONBLOCK);
+	fcntl(STDIN_FILENO, F_GETSIG, &old_sig);
+	if (old_sig)
+		fcntl(STDIN_FILENO, F_SETSIG, 0);
+
+	/* TODO set ICANON and ECHO and reset on exit */
+
 	if (argc) {
 		for (s = argv[0]; *s; s++) {
 			if ('0' <= *s && *s <= '9') {
@@ -324,6 +426,9 @@ main(int argc, char *argv[])
 
 	fprintf(stdout, "\033[?25h\n\033[?1049l");
 	fflush(stdout);
+	fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
+	fcntl(STDIN_FILENO, F_SETFL, old_flags);
+	fcntl(STDIN_FILENO, F_SETSIG, old_sig);
 	close(timerfd);
 	return 0;
 
@@ -331,6 +436,12 @@ fail:
 	perror(argv0 ? argv0 : "mongotimer");
 	fprintf(stdout, "\033[?25h\n\033[?1049l");
 	fflush(stdout);
+	if (owner_set)
+		fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
+	if (old_flags != -1)
+		fcntl(STDIN_FILENO, F_SETFL, old_flags);
+	if (old_sig)
+		fcntl(STDIN_FILENO, F_SETSIG, old_sig);
 	if (timerfd >= 0)
 		close(timerfd);
 	return 1;
@@ -338,5 +449,11 @@ fail:
 fail_usage:
 	fprintf(stdout, "\033[?25h\n\033[?1049l");
 	fflush(stdout);
+	if (owner_set)
+		fcntl(STDIN_FILENO, F_SETOWN_EX, &old_owner);
+	if (old_flags != -1)
+		fcntl(STDIN_FILENO, F_SETFL, old_flags);
+	if (old_sig)
+		fcntl(STDIN_FILENO, F_SETSIG, old_sig);
 	usage();
 }
