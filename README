@@ -24,7 +24,7 @@ DESCRIPTION
 	colour on your terminal. ☺
 
 OPTIONS
-	The mongoclock utility shall conform to the Base
+	The mongotimer utility shall conform to the Base
 	Definitions volume of POSIX.1-2008, Section 12.2,
 	Utility Syntax Guidelines.
 
