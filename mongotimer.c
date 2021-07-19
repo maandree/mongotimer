@@ -151,6 +151,8 @@ display_stopwatch(int timerfd)
 						if (timerfd_settime(timerfd, 0, &old_time, NULL))
 							goto fail;
 					}
+				} else if (c == 'q') {
+					goto out;
 				}
 			}
 		}
@@ -256,6 +258,9 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 						if (timerfd_settime(timerfd, 0, &old_time, NULL))
 							goto fail;
 					}
+				} else if (c == 'q') {
+					caught_sigterm = 1;
+					goto out;
 				}
 			}
 		}
