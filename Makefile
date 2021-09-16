@@ -8,13 +8,14 @@ DIGITS =\
 	mongo_5.h mongo_6.h mongo_7.h mongo_8.h mongo_9.h \
 	mongo_c.h mongo_m.h
 
+
 all: mongotimer
 
 mongotimer: mongotimer.o
 	$(CC) -o $@ mongotimer.o $(LDFLAGS)
 
 mongotimer.o: mongotimer.c arg.h $(DIGITS)
-	$(CC) -c -o $@ mongotimer.c $(CPPFLAGS) $(CFLAGS)
+	$(CC) -c -o $@ mongotimer.c $(CFLAGS) $(CPPFLAGS)
 
 mongo_0.h: digit.sh
 	./digit.sh 0 > $@
@@ -54,18 +55,15 @@ mongo_m.h: digit.sh
 
 install: mongotimer
 	mkdir -p -- "$(DESTDIR)$(PREFIX)/bin"
-	mkdir -p -- "$(DESTDIR)$(PREFIX)/share/licenses/mongotimer"
 	mkdir -p -- "$(DESTDIR)$(MANPREFIX)/man1"
 	cp -- mongotimer "$(DESTDIR)$(PREFIX)/bin/"
-	cp -- LICENSE "$(DESTDIR)$(PREFIX)/share/licenses/mongotimer/"
 	cp -- mongotimer.1 "$(DESTDIR)$(MANPREFIX)/man1/"
 
 uninstall:
 	-rm -- "$(DESTDIR)$(PREFIX)/bin/mongotimer"
 	-rm -- "$(DESTDIR)$(MANPREFIX)/man1/mongotimer.1"
-	-rm -r -- "$(DESTDIR)$(PREFIX)/share/licenses/mongotimer"
 
 clean:
-	-rm -f -- *.o mongotimer mongo_*.h
+	-rm -f -- *.o *.su mongotimer mongo_*.h
 
 .PHONY: all install uninstall clean
