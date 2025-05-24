@@ -42,6 +42,8 @@ static volatile sig_atomic_t caught_sigterm = 0;
 static volatile sig_atomic_t caught_sigwinch = 1;
 static volatile sig_atomic_t caught_sigio = 0;
 
+static struct itimerspec each_second;
+
 char *argv0;
 
 static void
@@ -152,6 +154,14 @@ display_stopwatch(int timerfd)
 						if (timerfd_settime(timerfd, 0, &old_time, NULL))
 							goto fail;
 					}
+				} else if (c == 'r') {
+					total_overrun = 0;
+					if (paused) {
+						old_time.it_value = each_second.it_value;
+					} else {
+						if (timerfd_settime(timerfd, 0, &each_second, NULL))
+							goto fail;
+					}
 				} else if (c == 'q') {
 					goto out;
 				}
@@ -213,8 +223,9 @@ fail:
 }
 
 static int
-display_timer(int timerfd, int64_t time, int exit_on_zero)
+display_timer(int timerfd, int64_t starttime, int exit_on_zero)
 {
+	int64_t time = starttime;
 	uint64_t overrun, abstime;
 	struct winsize winsize;
 	size_t x = 0, y = 0, width;
@@ -257,6 +268,14 @@ display_timer(int timerfd, int64_t time, int exit_on_zero)
 							goto fail;
 					} else {
 						if (timerfd_settime(timerfd, 0, &old_time, NULL))
+							goto fail;
+					}
+				} else if (c == 'r') {
+					time = starttime;
+					if (paused) {
+						old_time.it_value = each_second.it_value;
+					} else {
+						if (timerfd_settime(timerfd, 0, &each_second, NULL))
 							goto fail;
 					}
 				} else if (c == 'q') {
@@ -348,7 +367,6 @@ main(int argc, char *argv[])
 {
 	int timerfd = -1, old_flags = -1, tcset = 0;
 	int exit_on_zero = 0, old_sig = 0;
-	struct itimerspec itimerspec;
 	struct sigaction sigact;
 	int64_t time = 0, t = 0, owner_set = 0;
 	size_t colons = 0;
@@ -369,14 +387,14 @@ main(int argc, char *argv[])
 
 	fprintf(stdout, "\033[?1049h\033[?25l");
 
-	itimerspec.it_interval.tv_sec = 1;
-	itimerspec.it_interval.tv_nsec = 0;
-	itimerspec.it_value.tv_sec = 1;
-	itimerspec.it_value.tv_nsec = 0;
+	each_second.it_interval.tv_sec = 1;
+	each_second.it_interval.tv_nsec = 0;
+	each_second.it_value.tv_sec = 1;
+	each_second.it_value.tv_nsec = 0;
 	timerfd = timerfd_create(CLOCK_BOOTTIME, 0);
 	if (timerfd < 0)
 		goto fail;
-	if (timerfd_settime(timerfd, 0, &itimerspec, NULL))
+	if (timerfd_settime(timerfd, 0, &each_second, NULL))
 		goto fail;
 
 	memset(&sigact, 0, sizeof(sigact));
