@@ -16,6 +16,8 @@ DESCRIPTION
 
 	Pressing r will restart the timer/stopwatch.
 
+	Pressing q exits the application.
+
 	mongotimer is designed to be fit on most screens
 	and be readable from all practical distances, so
 	that it can be used in place of a standard wall-
