@@ -368,7 +368,8 @@ main(int argc, char *argv[])
 	int timerfd = -1, old_flags = -1, tcset = 0;
 	int exit_on_zero = 0, old_sig = 0;
 	struct sigaction sigact;
-	int64_t time = 0, t = 0, owner_set = 0;
+	int64_t time = 0, t = 0;
+	int owner_set = 0;
 	size_t colons = 0;
 	char *s;
 	struct f_owner_ex old_owner, new_owner;

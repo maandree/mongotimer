@@ -10,7 +10,7 @@ DESCRIPTION
 	is specified, it will count down from that time.
 
 	Pressing space will pause the timer/stopwatch,
-	and the time be displayed in yellow will
+	and the time be displayed in yellow while
 	paused. Pressing space again will unpause the
 	timer/stopwatch.
 
